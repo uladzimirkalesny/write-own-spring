@@ -2,8 +2,15 @@ package by.uladzimirkalesny;
 
 import lombok.SneakyThrows;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.toMap;
 
 public class ObjectFactory {
 
@@ -29,7 +36,23 @@ public class ObjectFactory {
 
         T t = implClass.getDeclaredConstructor().newInstance();
 
-        // todo
+        // decorate object
+        for (Field field : implClass.getDeclaredFields()) {
+            InjectProperty injectPropertyAnnotation = field.getAnnotation(InjectProperty.class);
+            String path = ClassLoader.getSystemClassLoader().getResource("application.properties").getPath();
+            try {
+                Stream<String> lines = new BufferedReader(new FileReader(path)).lines();
+                Map<String, String> propertiesMap = lines.map(line -> line.split("=")).collect(toMap(arr -> arr[0], arr -> arr[1]));
+
+                if (injectPropertyAnnotation != null) {
+                    String value = injectPropertyAnnotation.value().isEmpty() ? propertiesMap.get(field.getName()) : propertiesMap.get(injectPropertyAnnotation.value());
+                    field.setAccessible(true);
+                    field.set(t, value);
+                }
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
 
         return t;
     }
