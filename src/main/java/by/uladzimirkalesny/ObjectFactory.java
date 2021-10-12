@@ -22,6 +22,10 @@ public class ObjectFactory {
             implClass = config.getImplClass(type);
         }
 
-        return implClass.getDeclaredConstructor().newInstance();
+        T t = implClass.getDeclaredConstructor().newInstance();
+
+        // todo
+
+        return t;
     }
 }
