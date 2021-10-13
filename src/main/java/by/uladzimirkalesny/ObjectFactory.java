@@ -3,9 +3,7 @@ package by.uladzimirkalesny;
 import lombok.SneakyThrows;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Centralized place where we can create all objects.
@@ -14,33 +12,23 @@ import java.util.Map;
  */
 public class ObjectFactory {
 
-    private static ObjectFactory objectFactory = new ObjectFactory();
+    private final ApplicationContext applicationContext;
     private List<ObjectConfigurator> objectConfiguratorList = new ArrayList<>();
-    private Config config;
-
-    public static ObjectFactory getObjectFactoryInstance() {
-        return objectFactory;
-    }
 
     @SneakyThrows
-    private ObjectFactory() {
-        this.config = new JavaConfig("by.uladzimirkalesny", new HashMap<>(Map.of(Policemen.class, AngryPolicemen.class)));
-//        this.config = new JavaConfig("by.uladzimirkalesny", new HashMap<>(Map.of(Policemen.class, PolicemenImpl.class)));
-        for (Class<? extends ObjectConfigurator> clazz : config.getScanner().getSubTypesOf(ObjectConfigurator.class)) {
+    public ObjectFactory(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+        for (Class<? extends ObjectConfigurator> clazz : applicationContext.getConfig().getScanner().getSubTypesOf(ObjectConfigurator.class)) {
             this.objectConfiguratorList.add(clazz.getDeclaredConstructor().newInstance());
         }
     }
 
     @SneakyThrows
-    public <T> T createObject(Class<T> type) {
-        Class<? extends T> implClass = type;
-        if (type.isInterface()) {
-            implClass = config.getImplClass(type);
-        }
+    public <T> T createObject(Class<T> implClass) {
 
         T t = implClass.getDeclaredConstructor().newInstance();
 
-        objectConfiguratorList.forEach(objectConfigurator -> objectConfigurator.configure(t));
+        objectConfiguratorList.forEach(objectConfigurator -> objectConfigurator.configure(t, applicationContext));
 
         return t;
     }

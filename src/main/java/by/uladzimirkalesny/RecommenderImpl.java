@@ -1,5 +1,6 @@
 package by.uladzimirkalesny;
 
+@Singleton
 public class RecommenderImpl implements Recommender {
 
     @InjectProperty

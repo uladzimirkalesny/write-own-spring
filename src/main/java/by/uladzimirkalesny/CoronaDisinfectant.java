@@ -2,8 +2,11 @@ package by.uladzimirkalesny;
 
 public class CoronaDisinfectant {
 
-    private Announcer announcer = ObjectFactory.getObjectFactoryInstance().createObject(Announcer.class);
-    private Policemen policeman = ObjectFactory.getObjectFactoryInstance().createObject(Policemen.class);
+    @InjectByType
+    private Announcer announcer;
+
+    @InjectByType
+    private Policemen policeman;
 
     public void startDisinfectionRoom(Room room) {
         announcer.announceMessage("Start Disinfection!");
