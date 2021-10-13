@@ -7,6 +7,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Centralized place where we can create all objects.
+ * If we need to change implementation we should not go to the code.
+ * Before we're getting fully created object we can decorate it using ObjectConfigurator class.
+ */
 public class ObjectFactory {
 
     private static ObjectFactory objectFactory = new ObjectFactory();
