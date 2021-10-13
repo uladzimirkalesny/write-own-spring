@@ -5,6 +5,7 @@ import lombok.SneakyThrows;
 import javax.annotation.PostConstruct;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,6 +36,12 @@ public class ObjectFactory {
 
         invokeInit(implClass, t);
 
+        if (implClass.isAnnotationPresent(Deprecated.class)) {
+            return (T) Proxy.newProxyInstance(implClass.getClassLoader(), implClass.getInterfaces(), (proxy, method, args) -> {
+                System.out.println("PROXY");
+                return method.invoke(t, args);
+            });
+        }
         return t;
     }
 

@@ -1,6 +1,7 @@
 package by.uladzimirkalesny;
 
 @Singleton
+@Deprecated
 public class RecommenderImpl implements Recommender {
 
     @InjectProperty
