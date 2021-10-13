@@ -5,7 +5,6 @@ import lombok.SneakyThrows;
 import javax.annotation.PostConstruct;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,12 +17,17 @@ public class ObjectFactory {
 
     private final ApplicationContext applicationContext;
     private List<ObjectConfigurator> objectConfiguratorList = new ArrayList<>();
+    private List<ProxyConfigurator> proxyConfigurators = new ArrayList<>();
 
     @SneakyThrows
     public ObjectFactory(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
         for (Class<? extends ObjectConfigurator> clazz : applicationContext.getConfig().getScanner().getSubTypesOf(ObjectConfigurator.class)) {
             this.objectConfiguratorList.add(clazz.getDeclaredConstructor().newInstance());
+        }
+
+        for (Class<? extends ProxyConfigurator> clazz : applicationContext.getConfig().getScanner().getSubTypesOf(ProxyConfigurator.class)) {
+            this.proxyConfigurators.add(clazz.getDeclaredConstructor().newInstance());
         }
     }
 
@@ -36,11 +40,14 @@ public class ObjectFactory {
 
         invokeInit(implClass, t);
 
-        if (implClass.isAnnotationPresent(Deprecated.class)) {
-            return (T) Proxy.newProxyInstance(implClass.getClassLoader(), implClass.getInterfaces(), (proxy, method, args) -> {
-                System.out.println("PROXY");
-                return method.invoke(t, args);
-            });
+        t = replaceWithProxy(implClass, t);
+
+        return t;
+    }
+
+    private <T> T replaceWithProxy(Class<T> implClass, T t) {
+        for (ProxyConfigurator proxyConfigurator : proxyConfigurators) {
+            t = (T) proxyConfigurator.replaceWithProxy(t, implClass);
         }
         return t;
     }
